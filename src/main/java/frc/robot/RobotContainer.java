@@ -23,13 +23,13 @@ import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConst
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 
-//import frc.robot.commands.Auto.*;
+import frc.robot.commands.Auto.*;
 import frc.robot.commands.BallIntake.*;
-//import frc.robot.commands.Climb.*;
-//import frc.robot.commands.Conveyor.*;
+import frc.robot.commands.Climb.*;
+import frc.robot.commands.Conveyor.*;
 import frc.robot.commands.Drive.*;
-//import frc.robot.commands.Shooter.*;
-//import frc.robot.commands.Spinner.*;
+import frc.robot.commands.Shooter.*;
+import frc.robot.commands.Spinner.*;
 import frc.robot.commands.Turret.*;
 import frc.robot.subsystems.*;
 
@@ -46,13 +46,13 @@ public class RobotContainer {
   
   //Subsystems
   private final Drive drive;
-  //private final Climber climber;
+  private final Climber climber;
   private final BallIntake ballIntake;
-  //private final Conveyor conveyor;
-  //private final Shooter shooter;
-  //private final Spinner spinner;
+  private final Conveyor conveyor;
+  private final Shooter shooter;
+  private final Spinner spinner;
   private final Turret turret;
-  //private final Vision vision;
+  private final Vision vision;
 
   //Commands
   private final DefaultDrive defaultdrive;
@@ -71,13 +71,13 @@ public class RobotContainer {
 
     // Subsystem instantiation
     drive = Drive.getInstance();
-    //climber = Climber.getInstance();
+    climber = Climber.getInstance();
     ballIntake = BallIntake.getInstance();
-    //conveyor = Conveyor.getInstance();
-    //shooter = Shooter.getInstance();
-    //spinner = Spinner.getInstance();
+    conveyor = Conveyor.getInstance();
+    shooter = Shooter.getInstance();
+    spinner = Spinner.getInstance();
     turret = Turret.getInstance();
-    //vision = Vision.getInstance();
+    vision = Vision.getInstance();
 
     //Default command instantiation
     defaultdrive = new DefaultDrive(drive);
@@ -94,7 +94,6 @@ public class RobotContainer {
     Logger.configureLoggingAndConfig(this, false);
 
     // Register commands with TestingDashboard commands
-    /*
     DefaultDrive.registerWithTestingDashboard();
     DefaultIntake.registerWithTestingDashboard();
     DefaultTurret.registerWithTestingDashboard();
@@ -129,7 +128,6 @@ public class RobotContainer {
     TurnToLimit.registerWithTestingDashboard();
     PIDTurnToCenter.registerWithTestingDashboard();
     SpitBalls.registerWithTestingDashboard();
-    */
 
     // Create Testing Dashboard
     TestingDashboard.getInstance().createTestingDashboard();
@@ -196,17 +194,6 @@ public class RobotContainer {
         config
         
     );
-    
-    /*
-    String trajectoryJSON = "paths/Forward.wpilib.json";
-    try {
-      Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
-      trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
-      DriverStation.reportError("Opened File Yay", false);
-    } catch (IOException ex) {
-      DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
-    }
-    */
 
     RamseteCommand ramseteCommand = new RamseteCommand(
         trajectory,
