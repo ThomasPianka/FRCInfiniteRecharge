@@ -28,12 +28,11 @@ import frc.robot.commands.BallIntake.*;
 import frc.robot.commands.Climb.*;
 import frc.robot.commands.Conveyor.*;
 import frc.robot.commands.Drive.*;
+import frc.robot.commands.Drive.DriveDistance;
 import frc.robot.commands.Shooter.*;
 import frc.robot.commands.Spinner.*;
 import frc.robot.commands.Turret.*;
 import frc.robot.subsystems.*;
-
-import io.github.oblarg.oblog.Logger;
 
 /**
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -90,11 +89,11 @@ public class RobotContainer {
     //OI Device instantiation
     OI.getInstance();
 
-    //Configure OBlog
-    Logger.configureLoggingAndConfig(this, false);
-
     // Register commands with TestingDashboard commands
     DefaultDrive.registerWithTestingDashboard();
+    DriveDistance.registerWithTestingDashboard();
+    TurnAngle.registerWithTestingDashboard();
+    DriveSquareAuto.registerWithTestingDashboard();
     DefaultIntake.registerWithTestingDashboard();
     DefaultTurret.registerWithTestingDashboard();
     SpinConveyorHTimed.registerWithTestingDashboard();
@@ -128,6 +127,7 @@ public class RobotContainer {
     TurnToLimit.registerWithTestingDashboard();
     PIDTurnToCenter.registerWithTestingDashboard();
     SpitBalls.registerWithTestingDashboard();
+    PIDTurnToAngle.registerWithTestingDashboard();
 
     // Create Testing Dashboard
     TestingDashboard.getInstance().createTestingDashboard();

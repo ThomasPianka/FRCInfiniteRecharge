@@ -8,10 +8,12 @@
 package frc.robot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
@@ -37,9 +39,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class TestingDashboard {
   private static TestingDashboard testingDashboard;
   private ArrayList<TestingDashboardTab> testingTabs;
+  boolean initialized = false;
     
   private TestingDashboard() {
     testingTabs = new ArrayList<TestingDashboardTab>();
+    initialized = false;
   }
 
   public static TestingDashboard getInstance() {
@@ -102,7 +106,7 @@ public class TestingDashboard {
     tab.commandTable.add(cmdGrpName, command);
   }
 
-  public void registerData(SubsystemBase subsystem, String dataGrpName, String dataName) {
+  public void registerNumber(SubsystemBase subsystem, String dataGrpName, String dataName, double defaultValue) {
     TestingDashboardTab tab = getSubsystemTab(subsystem);
     if (tab == null) {
       System.out.println("WARNING: Subsystem for data does not exist!");
@@ -110,6 +114,73 @@ public class TestingDashboard {
     }
     System.out.println("Adding data " + dataName);
     tab.dataTable.addName(dataGrpName, dataName);
+    tab.dataTable.addDefaultNumberValue(dataName, defaultValue);
+  }
+
+  public void registerString(SubsystemBase subsystem, String dataGrpName, String dataName, String defaultValue) {
+    TestingDashboardTab tab = getSubsystemTab(subsystem);
+    if (tab == null) {
+      System.out.println("WARNING: Subsystem for data does not exist!");
+      return;
+    }
+    System.out.println("Adding String data " + dataName);
+    tab.dataTable.addName(dataGrpName, dataName);
+    tab.dataTable.addDefaultStringValue(dataName, defaultValue);
+  }
+
+  public void registerSendable(SubsystemBase subsystem, String dataGrpName, String dataName, Sendable sendable) {
+    TestingDashboardTab tab = getSubsystemTab(subsystem);
+    if (tab == null) {
+      System.out.println("WARNING: Subsystem for data does not exist!");
+      return;
+    }
+    System.out.println("Adding String data " + dataName);
+    tab.dataTable.addName(dataGrpName, dataName);
+    tab.dataTable.addDefaultSendableValue(dataName, sendable);
+  }
+
+  public void updateNumber(SubsystemBase subsystem, String dataName, double value) {
+    TestingDashboardTab tab = getSubsystemTab(subsystem);
+    if (tab == null) {
+      System.out.println("WARNING: Subsystem for data does not exist!");
+      return;
+    }
+    tab.dataTable.getEntry(dataName).setDouble(value);
+  }
+
+  public void updateString(SubsystemBase subsystem, String dataName, String value) {
+    TestingDashboardTab tab = getSubsystemTab(subsystem);
+    if (tab == null) {
+      System.out.println("WARNING: Subsystem for data does not exist!");
+      return;
+    }
+    tab.dataTable.getEntry(dataName).setString(value);
+  }
+
+  public double getNumber(SubsystemBase subsystem, String dataName) {
+    TestingDashboardTab tab = getSubsystemTab(subsystem);
+    if (tab == null) {
+      System.out.println("WARNING: Subsystem for data does not exist!");
+      return 0;
+    }
+    if (initialized) {
+      return tab.dataTable.getEntry(dataName).getDouble(0.0);
+    } else {
+      return tab.dataTable.getDefaultNumberValue(dataName);
+    }
+  }
+
+  public String getString(SubsystemBase subsystem, String dataName) {
+    TestingDashboardTab tab = getSubsystemTab(subsystem);
+    if (tab == null) {
+      System.out.println("WARNING: Subsystem for data does not exist!");
+      return "";
+    }
+    if (initialized) {
+      return tab.dataTable.getEntry(dataName).getString("");
+    } else {
+      return tab.dataTable.getDefaultStringValue(dataName);
+    }
   }
 
   public void createTestingDashboard() {
@@ -143,36 +214,47 @@ public class TestingDashboard {
         String dataGrpName = itd.next();
         System.out.println("Creating \"" + dataGrpName + "\" data group");
         ArrayList<String> dataList = tdt.dataTable.getDataList(dataGrpName);
+        Collections.sort(dataList);
         ShuffleboardLayout layout = tdt.tab.getLayout(dataGrpName, BuiltInLayouts.kList);
         layout.withPosition(colpos,0);
         layout.withSize(1,dataList.size());
         for (int j = 0; j < dataList.size(); j++) {
           String entryName = dataList.get(j);
-          double defaultValue = 0;
-          NetworkTableEntry entry = layout.add(entryName, defaultValue).getEntry();
-          tdt.dataTable.addEntry(entryName, entry);
+          double defaultNumberValue = 0;
+          String defaultStringValue = "";
+          Sendable sendable;
+          NetworkTableEntry entry;
+          int type = tdt.dataTable.getType(entryName);
+          switch (type) {
+            case TestingDashboardDataTable.TYPE_NUMBER:
+              defaultNumberValue = tdt.dataTable.getDefaultNumberValue(entryName);
+              entry = layout.add(entryName, defaultNumberValue).getEntry();
+              tdt.dataTable.addEntry(entryName, entry);
+              break;
+            case TestingDashboardDataTable.TYPE_STRING:
+              defaultStringValue = tdt.dataTable.getDefaultStringValue(entryName);
+              entry = layout.add(entryName, defaultStringValue).getEntry();
+              tdt.dataTable.addEntry(entryName, entry);
+              break;
+            case TestingDashboardDataTable.TYPE_SENDABLE:
+              sendable = tdt.dataTable.getDefaultSendableValue(entryName);
+              layout.add(entryName, sendable);
+              break;
+            default:
+              System.out.println("ERROR: Type is " + type + "for data item \"" + entryName);
+              break;
+          }
         }
         colpos++;
       }
 
     }
     createDebugTab();
+    initialized = true;
   }
 
   public void createDebugTab() {
     ShuffleboardTab debug_tab = Shuffleboard.getTab("Debug");
-
-    // Controlling inputs for Conveyor H motor1
-    SmartDashboard.putNumber("ConveyorHMotor1Speed", 0.5);
-
-    // Controlling inputs for Conveyor H motor2
-    SmartDashboard.putNumber("ConveyorHMotor2Speed", 0.5);
-
-    SmartDashboard.putNumber("ConveyorHMotorTimeout", 30);
-
-    // Controlling inputs for Conveyor V motor
-    SmartDashboard.putNumber("ConveyorVMotorSpeed", 0.5);
-    SmartDashboard.putNumber("ConveyorVMotorTimeout", 30);
 
     // Controlling inputs for Intake Roller motor
     SmartDashboard.putNumber("IntakeRollerSpeed", 1);
@@ -183,7 +265,7 @@ public class TestingDashboard {
     SmartDashboard.putString("SpinnerTargetColor","Yellow");
     SmartDashboard.putString("SpinnerActualColor","Yellow");
     SmartDashboard.putNumber("SpinnerColorNotFoundTimeout",5.0);
-        
+
     // Controlling amount of time to drive forward
     SmartDashboard.putNumber("DriveForwardTime", 3);
     
@@ -192,12 +274,6 @@ public class TestingDashboard {
 
     // Set delay for before we execute auto commands
     SmartDashboard.putNumber("StartAutoWaitTime", 3);
-
-    //Controlling shooter speeds
-    SmartDashboard.putNumber("TopShooterSpeed",0.2);
-    SmartDashboard.putNumber("BottomShooterSpeed",0.2);
-    SmartDashboard.putNumber("Top Setpoint", 2000);
-    SmartDashboard.putNumber("Bottom Setpoint", 2000);
 
     // Control Turret speed
     SmartDashboard.putNumber("IncrementTurretMotorSpeed", 0.5);
